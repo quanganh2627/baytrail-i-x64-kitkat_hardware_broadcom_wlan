@@ -15,13 +15,11 @@
 #
 LOCAL_PATH := $(call my-dir)
 
-ifeq ($(WPA_SUPPLICANT_VERSION),VER_0_8_X)
-
 ifneq ($(BOARD_WPA_SUPPLICANT_DRIVER),)
   CONFIG_DRIVER_$(BOARD_WPA_SUPPLICANT_DRIVER) := y
 endif
 
-WPA_SUPPL_DIR = external/wpa_supplicant_8
+WPA_SUPPL_DIR = hardware/intel/PRIVATE/wpa_supplicant_8
 WPA_SRC_FILE :=
 
 include $(WPA_SUPPL_DIR)/wpa_supplicant/android.config
@@ -44,7 +42,9 @@ WPA_SRC_FILE += driver_cmd_wext.c
 endif
 
 # To force sizeof(enum) = 4
+ifeq ($(TARGET_ARCH),arm)
 L_CFLAGS += -mabi=aapcs-linux
+endif
 
 ifdef CONFIG_ANDROID_LOG
 L_CFLAGS += -DCONFIG_ANDROID_LOG
@@ -54,6 +54,7 @@ endif
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := lib_driver_cmd_bcmdhd
+LOCAL_MODULE_TAGS := optional
 LOCAL_SHARED_LIBRARIES := libc libcutils
 LOCAL_CFLAGS := $(L_CFLAGS)
 LOCAL_SRC_FILES := $(WPA_SRC_FILE)
@@ -62,4 +63,3 @@ include $(BUILD_STATIC_LIBRARY)
 
 ########################
 
-endif

@@ -26,10 +26,14 @@ LOCAL_SRC_FILES := \
 	miniopt.c
 
 LOCAL_MODULE := dhdutil
-LOCAL_CFLAGS := -DSDTEST -DTARGETENV_android -Dlinux -DLINUX -mabi=aapcs-linux
+LOCAL_CFLAGS := -DSDTEST -DTARGETENV_android -Dlinux -DLINUX
+# To force sizeof(enum) = 4
+ifeq ($(TARGET_ARCH),arm)
+LOCAL_CFLAGS += -mabi=aapcs-linux
+endif
 LOCAL_C_INCLUDES +=$(LOCAL_PATH)/include
 
 LOCAL_MODULE_PATH := $(TARGET_OUT_OPTIONAL_EXECUTABLES)
-LOCAL_MODULE_TAGS := debug
+LOCAL_MODULE_TAGS := optional
 
 include $(BUILD_EXECUTABLE)
