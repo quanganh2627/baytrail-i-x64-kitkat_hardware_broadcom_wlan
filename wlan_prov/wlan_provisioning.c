@@ -43,7 +43,7 @@
 const unsigned char NullMacAddr[MAC_ADDRESS_LEN] = { 0, 0, 0, 0, 0, 0 };
 
 #define BUFF_SIZE 40
-const char CAL_file_name[] = "/factory/wifi/mac.txt";
+const char CAL_file_name[] = "/config/wifi/mac.txt";
 
 static int get_prov_mac_address(unsigned char** macAddr);
 static int cal_update_mac_file(unsigned char *MacAddr);
