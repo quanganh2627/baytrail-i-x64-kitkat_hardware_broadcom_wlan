@@ -19,7 +19,7 @@ ifneq ($(BOARD_WPA_SUPPLICANT_DRIVER),)
   CONFIG_DRIVER_$(BOARD_WPA_SUPPLICANT_DRIVER) := y
 endif
 
-WPA_SUPPL_DIR = hardware/intel/PRIVATE/wpa_supplicant_8
+WPA_SUPPL_DIR = $(TARGET_OUT_HEADERS)/wpa_supplicant_8
 WPA_SRC_FILE :=
 
 include $(WPA_SUPPL_DIR)/wpa_supplicant/android.config
