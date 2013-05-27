@@ -101,8 +101,7 @@ end:
 	return res;
 fatal:
 	sync();
-	LOGE("Fatal reboot");
-	android_reboot(ANDROID_RB_RESTART, 0, 0);
+	LOGE("Fatal MAC file not found, using default MAC address.");
 	return res;
 }
 
