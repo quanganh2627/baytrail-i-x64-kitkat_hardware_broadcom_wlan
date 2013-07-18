@@ -32,6 +32,11 @@
 
 #ifdef BUILD_WITH_CHAABI_SUPPORT
 #include "umip_access.h"
+#elif BUILD_WITH_TOKEN_SUPPORT
+#include "tee_token_if.h"
+#define WLAN_TOKEN_DG_ID		11	/* Group ID */
+#define WLAN_TOKEN_SG_ID		10	/* Subgroup ID */
+#define WLAN_TOKEN_ITEM_ID		1	/* Item ID */
 #endif
 
 #define MAC_ADDRESS_LEN 6
@@ -40,6 +45,7 @@ const unsigned char NullMacAddr[MAC_ADDRESS_LEN] = { 0, 0, 0, 0, 0, 0 };
 #define BUFF_SIZE 40
 const char CAL_file_name[] = "/factory/wifi/mac.txt";
 
+static int get_prov_mac_address(unsigned char** macAddr);
 static int cal_update_mac_file(unsigned char *MacAddr);
 static int cal_check_mac_file_exist();
 static void cal_randomize_mac(unsigned char *MacAddr);
@@ -49,7 +55,7 @@ int main(int argc, char **argv)
 {
 	FILE *calBinFile = NULL;
 	unsigned char CalMacAddr[MAC_ADDRESS_LEN];
-	unsigned char *ChaabiMacAddr = NULL;
+	unsigned char *ProvMacAddr = NULL;
 	int mac_line;
 	int res = 0;
 
@@ -60,43 +66,42 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-#ifdef BUILD_WITH_CHAABI_SUPPORT
 	/* Read MAC address from Chaabi */
-	if (get_customer_data(ACD_WLAN_MAC_ADDR_FIELD_INDEX,
-				(void ** const) &ChaabiMacAddr) != MAC_ADDRESS_LEN) {
-#endif
-		/* chaabi read error OR no chaabi support */
-		ChaabiMacAddr = (unsigned char *) malloc(MAC_ADDRESS_LEN);
-		memcpy(ChaabiMacAddr, NullMacAddr, MAC_ADDRESS_LEN);
+	if (get_prov_mac_address(&ProvMacAddr) < 0) {
+		/* read error*/
+		LOGI("Provisioned MAC not found, request to randomize one");
+		ProvMacAddr = (unsigned char *) malloc(MAC_ADDRESS_LEN);
+		if (ProvMacAddr == NULL) {
+			res = -1;
+			goto fatal;
+		}
+		memcpy(ProvMacAddr, NullMacAddr, MAC_ADDRESS_LEN);
+	} else
+		LOGI("Provisioned Mac address:  %02x:%02x:%02x:%02x:%02x:%02x",
+					ProvMacAddr[0], ProvMacAddr[1], ProvMacAddr[2],
+					ProvMacAddr[3], ProvMacAddr[4], ProvMacAddr[5]);
 
-		LOGI("ChaabiMac MAC not found");
-#ifdef BUILD_WITH_CHAABI_SUPPORT
-	}
-#endif
-	LOGI("CHAABI Mac adr is %02x:%02x:%02x:%02x:%02x:%02x", ChaabiMacAddr[0], ChaabiMacAddr[1], ChaabiMacAddr[2],
-					ChaabiMacAddr[3], ChaabiMacAddr[4], ChaabiMacAddr[5]);
-
-	/* Check Chaabi MAC support */
-	if (ChaabiMacAddr && (memcmp(ChaabiMacAddr, NullMacAddr, MAC_ADDRESS_LEN) == 0)) {
-		/* Chaabi MAC address is null due to engineering mode or chaabi read error */
-
+	/* Verified if mac randomize is really necessary */
+	if (ProvMacAddr && (memcmp(ProvMacAddr, NullMacAddr, MAC_ADDRESS_LEN) == 0)) {
+		/* Provisioned MAC address is null due to engineering mode or read error */
 		if (cal_check_mac_file_exist() > 0){
 			LOGI("mac address exist, Nothing to do..");
 			goto end;
 		}
 
-		cal_randomize_mac(ChaabiMacAddr);
+		LOGI("Mac address doesn't exist, randomize one.");
+		cal_randomize_mac(ProvMacAddr);
 	}
 
-	if (cal_update_mac_file(ChaabiMacAddr) < 0)
+	if (ProvMacAddr && (cal_update_mac_file(ProvMacAddr) < 0))
 		goto fatal;
 
 end:
 	LOGI("End ...");
 	sync();
 
-	if(ChaabiMacAddr)
-	    free(ChaabiMacAddr);
+	if(ProvMacAddr)
+	    free(ProvMacAddr);
 
 	return res;
 fatal:
@@ -136,6 +141,9 @@ static int cal_create_new_mac_file(unsigned char *MacAddr){
 
 	LOGI("%s Enter", __FUNCTION__);
 
+	if (MacAddr == NULL)
+		return -1;
+
 	ret = sprintf(buff, "%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx\n", MacAddr[0], MacAddr[1], MacAddr[2], MacAddr[3], MacAddr[4], MacAddr[5]);
 	if (ret != (MAC_ADDRESS_LEN*2)+1 ){
 		LOGE("error on writing into the buffer");
@@ -162,6 +170,38 @@ static int cal_create_new_mac_file(unsigned char *MacAddr){
 
 	close(fd);
 	return 1;
+}
+
+/* get the provisioned mac address from secured partition */
+/* depending of technology used */
+static int get_prov_mac_address(unsigned char** macAddr) {
+	int ret = 0;
+#ifdef BUILD_WITH_CHAABI_SUPPORT
+	/* Read MAC address from Chaabi */
+	ret = get_customer_data(ACD_WLAN_MAC_ADDR_FIELD_INDEX,
+									(void ** const) macAddr);
+	if (ret != MAC_ADDRESS_LEN) {
+		LOGI("get_customer_data error: 0x%x", ret);
+		if (ret >0) {
+			free(*macAddr);
+			*macAddr = NULL;
+		}
+		return -1;
+	}
+#elif BUILD_WITH_TOKEN_SUPPORT
+	*macAddr = malloc(sizeof(unsigned char) * MAC_ADDRESS_LEN);
+	ret = tee_token_item_read(WLAN_TOKEN_DG_ID, WLAN_TOKEN_SG_ID, WLAN_TOKEN_ITEM_ID,
+								0, *macAddr, MAC_ADDRESS_LEN, 0);
+	if (ret != 0) {
+		LOGI("tee_token_item_read error: 0x%x", ret);
+		free(*macAddr);
+		*macAddr = NULL;
+		return -1;
+	}
+#else
+	ret = -1;
+#endif
+	return ret;
 }
 
 /* update the mac file with the mac address MacAddr */
