@@ -71,6 +71,10 @@ int main(int argc, char **argv)
 		/* read error*/
 		LOGI("Provisioned MAC not found, request to randomize one");
 		ProvMacAddr = (unsigned char *) malloc(MAC_ADDRESS_LEN);
+		if (ProvMacAddr == NULL) {
+			res = -1;
+			goto fatal;
+		}
 		memcpy(ProvMacAddr, NullMacAddr, MAC_ADDRESS_LEN);
 	} else
 		LOGI("Provisioned Mac address:  %02x:%02x:%02x:%02x:%02x:%02x",
