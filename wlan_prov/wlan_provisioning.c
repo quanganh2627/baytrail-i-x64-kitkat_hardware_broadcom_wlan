@@ -67,7 +67,7 @@ int main(int argc, char **argv)
 	}
 
 	/* Read MAC address from Chaabi */
-	if (get_prov_mac_address(&ProvMacAddr)) {
+	if (get_prov_mac_address(&ProvMacAddr) < 0) {
 		/* read error*/
 		LOGI("Provisioned MAC not found, request to randomize one");
 		ProvMacAddr = (unsigned char *) malloc(MAC_ADDRESS_LEN);
