@@ -141,6 +141,9 @@ static int cal_create_new_mac_file(unsigned char *MacAddr){
 
 	LOGI("%s Enter", __FUNCTION__);
 
+	if (MacAddr == NULL)
+		return -1;
+
 	ret = sprintf(buff, "%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx\n", MacAddr[0], MacAddr[1], MacAddr[2], MacAddr[3], MacAddr[4], MacAddr[5]);
 	if (ret != (MAC_ADDRESS_LEN*2)+1 ){
 		LOGE("error on writing into the buffer");
