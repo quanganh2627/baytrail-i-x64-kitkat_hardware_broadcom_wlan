@@ -93,7 +93,7 @@ int main(int argc, char **argv)
 		cal_randomize_mac(ProvMacAddr);
 	}
 
-	if (cal_update_mac_file(ProvMacAddr) < 0)
+	if (ProvMacAddr && (cal_update_mac_file(ProvMacAddr) < 0))
 		goto fatal;
 
 end:
