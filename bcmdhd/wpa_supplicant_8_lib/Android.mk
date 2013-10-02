@@ -46,6 +46,12 @@ ifeq ($(TARGET_ARCH),arm)
 L_CFLAGS += -mabi=aapcs-linux
 endif
 
+# To make P2P working in existing Android framework (below KLP)
+# with kernels linux-3.8 and above
+ifeq ($(K310_MR2_COMPATIBILITY), true)
+L_CFLAGS += -DCONFIG_K310_MR2_COMPATIBILITY
+endif
+
 ifdef CONFIG_ANDROID_LOG
 L_CFLAGS += -DCONFIG_ANDROID_LOG
 endif
