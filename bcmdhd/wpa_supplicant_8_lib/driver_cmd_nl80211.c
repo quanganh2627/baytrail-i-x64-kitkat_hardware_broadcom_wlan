@@ -70,8 +70,14 @@ int wpa_driver_nl80211_driver_cmd(void *priv, char *cmd, char *buf,
 		ifr.ifr_data = &priv_cmd;
 
 		if ((ret = ioctl(drv->global->ioctl_sock, SIOCDEVPRIVATE + 1, &ifr)) < 0) {
-			wpa_printf(MSG_ERROR, "%s: failed to issue private commands\n", __func__);
+			wpa_printf(MSG_ERROR, "%s: failed to issue private commands: %s\n", __func__, cmd);
+#ifdef CONFIG_K310_MR2_COMPATIBILITY
+			wpa_printf(MSG_DEBUG, "%s: don't return DRIVER HANG because of "
+					"CONFIG_K310_MR2_COMPATIBILITY\n", __func__);
+			return 0;
+#else
 			wpa_driver_send_hang_msg(drv);
+#endif
 		} else {
 			drv_errors = 0;
 			ret = 0;
@@ -135,6 +141,15 @@ int wpa_driver_set_ap_wps_p2p_ie(void *priv, const struct wpabuf *beacon,
 	};
 
 	wpa_printf(MSG_DEBUG, "%s: Entry", __func__);
+
+#ifdef CONFIG_K310_MR2_COMPATIBILITY
+	wpa_printf(MSG_DEBUG, "%s: Exiting prematurely in case of "
+			"CONFIG_K310_MR2_COMPATIBILITY as there is no ioctl handler for P2P "
+			"discover interface\n", __func__);
+
+	return 0;
+#endif
+
 	for (i = 0; cmd_arr[i].cmd != -1; i++) {
 		os_memset(buf, 0, sizeof(buf));
 		pbuf = buf;
