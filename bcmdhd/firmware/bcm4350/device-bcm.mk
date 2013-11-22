@@ -15,15 +15,12 @@
 #
 
 ########################
+-include hardware/broadcom/wlan/bcmdhd/config/config-bcm.mk
 
-ifeq ($(strip $(WIFI_BAND)),802_11_ABG)
-BCM_FW_SRC_FILE_STA := fw_bcm4329_abg.bin
-else
-BCM_FW_SRC_FILE_STA := fw_bcm4329.bin
-endif
-BCM_FW_SRC_FILE_AP  := fw_bcm4329_apsta.bin
+BCM_FW_SRC_FILE_STA := fw_bcm4350.bin
+BCM_FW_SRC_FILE_AP  := fw_bcm4350.bin
 
 PRODUCT_COPY_FILES += \
-    hardware/broadcom/wlan/bcmdhd/firmware/bcm4329/$(BCM_FW_SRC_FILE_STA):system/vendor/firmware/fw_bcmdhd.bin \
-    hardware/broadcom/wlan/bcmdhd/firmware/bcm4329/$(BCM_FW_SRC_FILE_AP):system/vendor/firmware/fw_bcmdhd_apsta.bin
+    hardware/broadcom/wlan/bcmdhd/firmware/bcm4350/$(BCM_FW_SRC_FILE_STA):system/vendor/firmware/fw_bcmdhd.bin \
+    hardware/broadcom/wlan/bcmdhd/firmware/bcm4350/$(BCM_FW_SRC_FILE_AP):system/vendor/firmware/fw_bcmdhd_apsta.bin
 ########################
