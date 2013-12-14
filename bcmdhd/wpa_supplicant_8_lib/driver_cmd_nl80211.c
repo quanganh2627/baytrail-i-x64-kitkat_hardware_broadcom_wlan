@@ -36,7 +36,7 @@ static void wpa_driver_send_hang_msg(struct wpa_driver_nl80211_data *drv)
 	}
 }
 
-int wpa_driver_nl80211_driver_cmd(void *priv, char *cmd, char *buf,
+int bcm_wpa_driver_nl80211_driver_cmd(void *priv, char *cmd, char *buf,
 				  size_t buf_len )
 {
 	struct i802_bss *bss = priv;
@@ -71,6 +71,12 @@ int wpa_driver_nl80211_driver_cmd(void *priv, char *cmd, char *buf,
 
 		if ((ret = ioctl(drv->global->ioctl_sock, SIOCDEVPRIVATE + 1, &ifr)) < 0) {
 			wpa_printf(MSG_ERROR, "%s: failed to issue private commands\n", __func__);
+#ifdef IGNORE_SETAPWPSP2PIE_FAILURE
+			if(cmd && os_strstr(cmd, "SET_AP_WPS_P2P_IE")) {
+				wpa_printf(MSG_WARNING, "%s: ignore SET_AP_WPS_P2P_IE failure\n", __func__);
+				return 0;
+			}
+#endif /* IGNORE_SETAPWPSP2PIE_FAILURE */
 			wpa_driver_send_hang_msg(drv);
 		} else {
 			drv_errors = 0;
@@ -90,33 +96,33 @@ int wpa_driver_nl80211_driver_cmd(void *priv, char *cmd, char *buf,
 	return ret;
 }
 
-int wpa_driver_set_p2p_noa(void *priv, u8 count, int start, int duration)
+int bcm_wpa_driver_set_p2p_noa(void *priv, u8 count, int start, int duration)
 {
 	char buf[MAX_DRV_CMD_SIZE];
 
 	memset(buf, 0, sizeof(buf));
 	wpa_printf(MSG_DEBUG, "%s: Entry", __func__);
 	snprintf(buf, sizeof(buf), "P2P_SET_NOA %d %d %d", count, start, duration);
-	return wpa_driver_nl80211_driver_cmd(priv, buf, buf, strlen(buf)+1);
+	return bcm_wpa_driver_nl80211_driver_cmd(priv, buf, buf, strlen(buf)+1);
 }
 
-int wpa_driver_get_p2p_noa(void *priv, u8 *buf, size_t len)
+int bcm_wpa_driver_get_p2p_noa(void *priv, u8 *buf, size_t len)
 {
 	/* Return 0 till we handle p2p_presence request completely in the driver */
 	return 0;
 }
 
-int wpa_driver_set_p2p_ps(void *priv, int legacy_ps, int opp_ps, int ctwindow)
+int bcm_wpa_driver_set_p2p_ps(void *priv, int legacy_ps, int opp_ps, int ctwindow)
 {
 	char buf[MAX_DRV_CMD_SIZE];
 
 	memset(buf, 0, sizeof(buf));
 	wpa_printf(MSG_DEBUG, "%s: Entry", __func__);
 	snprintf(buf, sizeof(buf), "P2P_SET_PS %d %d %d", legacy_ps, opp_ps, ctwindow);
-	return wpa_driver_nl80211_driver_cmd(priv, buf, buf, strlen(buf) + 1);
+	return bcm_wpa_driver_nl80211_driver_cmd(priv, buf, buf, strlen(buf) + 1);
 }
 
-int wpa_driver_set_ap_wps_p2p_ie(void *priv, const struct wpabuf *beacon,
+int bcm_wpa_driver_set_ap_wps_p2p_ie(void *priv, const struct wpabuf *beacon,
 				 const struct wpabuf *proberesp,
 				 const struct wpabuf *assocresp)
 {
@@ -146,7 +152,7 @@ int wpa_driver_set_ap_wps_p2p_ie(void *priv, const struct wpabuf *beacon,
 			wpabuf_dup(cmd_arr[i].src) : NULL;
 		if (ap_wps_p2p_ie) {
 			os_memcpy(pbuf, wpabuf_head(ap_wps_p2p_ie), wpabuf_len(ap_wps_p2p_ie));
-			ret = wpa_driver_nl80211_driver_cmd(priv, buf, buf,
+			ret = bcm_wpa_driver_nl80211_driver_cmd(priv, buf, buf,
 				strlen(_cmd) + 3 + wpabuf_len(ap_wps_p2p_ie));
 			wpabuf_free(ap_wps_p2p_ie);
 			if (ret < 0)
