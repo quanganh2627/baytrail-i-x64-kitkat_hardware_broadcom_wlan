@@ -45,6 +45,9 @@ int bcm_wpa_driver_nl80211_driver_cmd(void *priv, char *cmd, char *buf,
 	android_wifi_priv_cmd priv_cmd;
 	int ret = 0;
 
+	if (!cmd)
+		return -EINVAL;
+
 	if (os_strcasecmp(cmd, "STOP") == 0) {
 		linux_set_iface_flags(drv->global->ioctl_sock, bss->ifname, 0);
 		wpa_msg(drv->ctx, MSG_INFO, WPA_EVENT_DRIVER_STATE "STOPPED");
@@ -71,12 +74,6 @@ int bcm_wpa_driver_nl80211_driver_cmd(void *priv, char *cmd, char *buf,
 
 		if ((ret = ioctl(drv->global->ioctl_sock, SIOCDEVPRIVATE + 1, &ifr)) < 0) {
 			wpa_printf(MSG_ERROR, "%s: failed to issue private commands\n", __func__);
-#ifdef IGNORE_SETAPWPSP2PIE_FAILURE
-			if(cmd && os_strstr(cmd, "SET_AP_WPS_P2P_IE")) {
-				wpa_printf(MSG_WARNING, "%s: ignore SET_AP_WPS_P2P_IE failure\n", __func__);
-				return 0;
-			}
-#endif /* IGNORE_SETAPWPSP2PIE_FAILURE */
 			wpa_driver_send_hang_msg(drv);
 		} else {
 			drv_errors = 0;
