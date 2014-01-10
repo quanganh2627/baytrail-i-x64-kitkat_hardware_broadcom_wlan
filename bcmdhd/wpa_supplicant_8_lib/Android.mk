@@ -52,6 +52,11 @@ ifdef CONFIG_ANDROID_LOG
 L_CFLAGS += -DCONFIG_ANDROID_LOG
 endif
 
+ifeq ($(DISABLE_WIFI_5GHZ), true)
+L_CFLAGS += -DDISABLE_COUNTRY_CODE_SET
+endif
+
+
 ########################
 
 include $(CLEAR_VARS)
