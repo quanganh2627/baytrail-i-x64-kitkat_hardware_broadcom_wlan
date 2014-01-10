@@ -72,6 +72,14 @@ int bcm_wpa_driver_nl80211_driver_cmd(void *priv, char *cmd, char *buf,
 		priv_cmd.total_len = buf_len;
 		ifr.ifr_data = &priv_cmd;
 
+#ifdef DISABLE_COUNTRY_CODE_SET
+		if (os_strncasecmp(cmd, "COUNTRY", 7) == 0) {
+			wpa_printf(MSG_WARNING, "%s: setting of country code has"
+				   " been disabled\n", __func__);
+			return 0;
+		}
+#endif
+
 		if ((ret = ioctl(drv->global->ioctl_sock, SIOCDEVPRIVATE + 1, &ifr)) < 0) {
 			wpa_printf(MSG_ERROR, "%s: failed to issue private commands\n", __func__);
 			wpa_driver_send_hang_msg(drv);
