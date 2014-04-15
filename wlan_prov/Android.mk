@@ -33,6 +33,10 @@ LOCAL_STATIC_LIBRARIES := \
 	libdx_cc7_static
 endif
 
+ifeq ($(TARGET_BUILD_VARIANT),eng)
+LOCAL_CFLAGS += -DWLAN_PROV_DEBUG_LOG_ENABLED
+endif
+
 
 LOCAL_SHARED_LIBRARIES := \
 	libc libcutils libhardware_legacy libcrypto
