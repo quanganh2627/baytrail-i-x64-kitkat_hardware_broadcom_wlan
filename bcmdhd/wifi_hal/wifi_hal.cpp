@@ -171,6 +171,10 @@ wifi_error wifi_initialize(wifi_handle *handle)
 
     wifi_init_interfaces(*handle);
     // ALOGI("Found %d interfaces", info->num_interfaces);
+    if (info->num_interfaces <= 0) {
+        ALOGE("No Wifi interfaces");
+        return WIFI_ERROR_NOT_AVAILABLE;
+    }
 
 
     ALOGI("Initialized Wifi HAL Successfully; vendor cmd = %d", NL80211_CMD_VENDOR);
